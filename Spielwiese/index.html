@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Title</title>
+  <style>
+    *{
+      max-width: none;
+      max-height: none;
+    }
+    body{
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+    canvas{
+      width: 90vw;
+      height: 90vh;
+      background: blue;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="mycanvas">
+  </canvas>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/6.0.2/browser/pixi.js" integrity="sha512-bEouBuDjAc7JfXa68qgiaTUjn3priZJfv1QStbGvYYEofUZezKOr2ekOzp8sr9q71SYt0pKzh/QMcI0yc+yVnA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script type="text/javascript">
+    const canvas = document.getElementById('mycanvas');
+    const my_app = new PIXI.Application({
+      view: canvas,
+      resizeTo: canvas,
+    });
+    let loader = PIXI.Loader.shared;
+    loader.add('./resources/TestVideo-Fische.mp4');
+    loader.add('./resources/TestMask2.png');
+    loader.onComplete.add(() => {
+      loader.resources['./resources/TestVideo-Fische.mp4'].data.loop = true;
+      let mask_base_texture = new PIXI.BaseTexture(loader.resources['./resources/TestMask2.png'].data);
+      let base_texture = new PIXI.BaseTexture(loader.resources['./resources/TestVideo-Fische.mp4'].data)
+      let mask_texture = new PIXI.Texture(mask_base_texture);
+
+      let puzzlepieces = [];
+      for(let x = 0; x + 100 < base_texture.width; x += 100){
+        for(let y = 0; y + 100 < base_texture.height; y += 100){
+          let tile_container = new PIXI.Container();
+          tile_container.sortableChildren = true;
+          let mask_sprite = new PIXI.Sprite(mask_texture);
+          tile_container.addChild(mask_sprite);
+          let tile_texture = new PIXI.Texture(base_texture, new PIXI.Rectangle(x,y,120,120));
+          let tile_sprite = new PIXI.Sprite(tile_texture);
+          tile_sprite.setTransform(-50,-50);
+          mask_sprite.setTransform(-50,-50);
+          tile_container.addChild(tile_sprite);
+          tile_sprite.mask = mask_sprite;
+          tile_container.setTransform(x, y);
+          tile_container.interactive = true;
+          tile_container.on('mousedown', onDragStart)
+                        .on('mousemove', onDragMove)
+                        .on('mouseup', onDragEnd);
+          my_app.stage.addChild(tile_container);
+          puzzlepieces.push(tile_container);
+        }
+      }
+
+      function onDragStart(event){
+        console.log(this.zIndex);
+        this.data = event.data;
+        this.dragging = true;
+      }
+      function onDragMove(){
+        if (this.dragging)
+        {
+          var newPosition = this.data.getLocalPosition(this.parent);
+          this.position.x = newPosition.x;
+          this.position.y = newPosition.y;
+        }
+      }
+      function onDragEnd(){
+        this.dragging = false;
+        this.data = null;
+      }
+    })
+    loader.load();
+  </script>
+</body>
+</html>
