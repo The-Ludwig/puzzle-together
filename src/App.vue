@@ -1,6 +1,6 @@
 <template>
   <img alt="Vue logo" src="./assets/logo.png" />
-  <Canvas v-bind:src="video_src" nx=3 ny=3  />
+  <Canvas v-bind:src="video_src" :nx=3 :ny=3  />
 </template>
 
 <script lang="ts">

@@ -7,7 +7,7 @@ import { defineComponent } from "vue";
 import { reset, createPuzzle} from '../puzzle';
 
 if (import.meta.hot) {
-  import.meta.hot.dispose((data) => {
+  import.meta.hot?.dispose((data) => {
     reset()
   });
 }

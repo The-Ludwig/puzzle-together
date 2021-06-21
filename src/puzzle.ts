@@ -25,8 +25,8 @@ class PuzzlePiece extends PIXI.Container {
     super();
     this.x = x;
     this.y = y;
-    this.width = width;
-    this.height = height;
+    this._width = width;
+    this._height = height;
     this.base_texture = base_texture;
 
     this.top = top;
@@ -35,23 +35,23 @@ class PuzzlePiece extends PIXI.Container {
     this.right = right;
 
     if (top) {
-      this.height += top.added_size;
+      this._height += top.added_size;
       this.y -= top.added_size;
     }
     if (bottom) {
-      this.height += bottom.added_size;
+      this._height += bottom.added_size;
     }
     if (left) {
-      this.width += left.added_size;
+      this._width += left.added_size;
       this.x -= left.added_size;
     }
     if (right) {
-      this.width += right.added_size;
+      this._width += right.added_size;
     }
 
     let tile_texture = new PIXI.Texture(
       base_texture,
-      new PIXI.Rectangle(x, y, this.width, this.height)
+      new PIXI.Rectangle(x, y, this._width, this._height)
     );
     let tile_sprite = new PIXI.Sprite(tile_texture);
 
@@ -59,89 +59,92 @@ class PuzzlePiece extends PIXI.Container {
     mask.lineStyle(0); // draw a circle, set the lineStyle to zero so the circle doesn't have an outline
     mask.beginFill(0xffffff, 1);
     mask.drawRect(this.innerX, this.innerY, this.innerWidth, this.innerHeight);
-    if (top) {
-      if (top.negative) {
-        mask.beginHole();
-        mask.drawEllipse(
-          this.midX + this.innerWidth * top.pos,
-          this.innerY + top.out,
-          top.orthosize,
-          top.size
-        );
-        mask.endHole();
-      } else {
-        mask.drawEllipse(
-          this.midX + this.innerWidth * top.pos,
-          this.innerY - top.out,
-          top.orthosize,
-          top.size
-        );
-      }
+    let test = new PIXI.Graphics();
+
+    mask.beginHole();
+    if (top && top.negative) {
+      mask.drawEllipse(
+        this.midX + this.innerWidth * top.pos,
+        this.innerY + top.out,
+        top.orthosize,
+        top.size
+      );
     }
-    if (bottom) {
-      if (bottom.negative) {
-        mask.beginHole();
-        mask.drawEllipse(
-          this.midX + this.innerWidth * bottom.pos,
-          this.innerY + this.innerHeight - bottom.out,
-          bottom.orthosize,
-          bottom.size
-        );
-        mask.endHole();
-      } else {
-        mask.drawEllipse(
-          this.midX + this.innerWidth * bottom.pos,
-          this.innerY + this.innerHeight + bottom.out,
-          bottom.orthosize,
-          bottom.size
-        );
-      }
+    if (bottom && bottom.negative) {
+      mask.drawEllipse(
+        this.midX + this.innerWidth * bottom.pos,
+        this.innerY + this.innerHeight - bottom.out,
+        bottom.orthosize,
+        bottom.size
+      );
     }
-    if (left) {
-      if (left.negative) {
-        mask.beginHole();
-        mask.drawEllipse(
-          this.innerX + left.out,
-          this.midY + this.innerHeight * left.pos,
-          left.size,
-          left.orthosize,
-        );
-        mask.endHole();
-      } else {
-        mask.drawEllipse(
-          this.innerX - left.out,
-          this.midY + this.innerHeight * left.pos,
-          left.size,
-          left.orthosize,
-        );
-      }
+    if (left && left.negative) {
+      test.beginFill(0xff0000, 1);
+      test.drawEllipse(
+        this.innerX + left.out,
+        this.midY + this.innerHeight * left.pos,
+        left.size,
+        left.orthosize
+      );
+      test.endFill()
+      mask.drawEllipse(
+        this.innerX + left.out,
+        this.midY + this.innerHeight * left.pos,
+        left.size,
+        left.orthosize
+      );
     }
-    if (right) {
-      if (right.negative) {
-        mask.beginHole();
-        mask.drawEllipse(
-          this.innerX + this.innerWidth - right.out,
-          this.midY + this.innerHeight * right.pos,
-          right.size,
-          right.orthosize,
-        );
-        mask.endHole();
-      } else {
-        mask.drawEllipse(
-          this.innerX + this.innerWidth + right.out,
-          this.midX + this.innerWidth * right.pos,
-          right.size,
-          right.orthosize,
-        );
-      }
+    if (right && right.negative) {
+      mask.drawEllipse(
+        this.innerX + this.innerWidth - right.out,
+        this.midY + this.innerHeight * right.pos,
+        right.size,
+        right.orthosize
+      );
+    }
+    mask.endHole();
+
+    mask.beginFill(0xffffff, 1);
+    if (top && !top.negative) {
+      mask.drawEllipse(
+        this.midX + this.innerWidth * top.pos,
+        this.innerY - top.out,
+        top.orthosize,
+        top.size
+      );
+    }
+    if (bottom && !bottom.negative) {
+      mask.drawEllipse(
+        this.midX + this.innerWidth * bottom.pos,
+        this.innerY + this.innerHeight + bottom.out,
+        bottom.orthosize,
+        bottom.size
+      );
+    }
+    if (left && !left.negative) {
+      mask.drawEllipse(
+        this.innerX - left.out,
+        this.midY + this.innerHeight * left.pos,
+        left.size,
+        left.orthosize
+      );
+    }
+    if (right && !right.negative) {
+      mask.drawEllipse(
+        this.innerX + this.innerWidth + right.out,
+        this.midX + this.innerWidth * right.pos,
+        right.size,
+        right.orthosize
+      );
     }
     mask.endFill();
 
     this.interactive = true;
     this.buttonMode = true;
+    tile_sprite.mask = mask;
     this.addChild(tile_sprite);
     this.addChild(mask);
-    this.mask = mask;
+    this.addChild(test);
 
     this.on("pointerdown", onDragStart)
       .on("pointerup", onDragEnd)
@@ -151,13 +154,15 @@ class PuzzlePiece extends PIXI.Container {
 
   get innerWidth() {
     return (
-      this.width - (this.left?.added_size ?? 0) - (this.right?.added_size ?? 0)
+      this._width - (this.left?.added_size ?? 0) - (this.right?.added_size ?? 0)
     );
   }
 
   get innerHeight() {
     return (
-      this.height - (this.top?.added_size ?? 0) - (this.bottom?.added_size ?? 0)
+      this._height -
+      (this.top?.added_size ?? 0) -
+      (this.bottom?.added_size ?? 0)
     );
   }
 
@@ -202,7 +207,7 @@ class Connector {
   }
 
   get added_size() {
-    return this.negative ? 0 : this.size + this.out;
+    return this.negative ? 0 : this.size/2 + this.out;
   }
 
   static FromOpposite(other: Connector) {
@@ -218,8 +223,8 @@ class Connector {
     return created;
   }
 
-  static Random(){
-    return new Connector(0, 0, 0, 0, false);
+  static Random() {
+    return new Connector(30, 30, 0, 20, Math.random() < 0.5);
   }
 
   createOpposite() {
@@ -262,6 +267,7 @@ export function createPuzzle(
       view: canvas,
       width: base_texture.width,
       height: base_texture.height,
+      sharedLoader: true,
     });
 
     let puzzle_pieces: PuzzlePiece[][] = [];
@@ -274,24 +280,23 @@ export function createPuzzle(
     for (let ix = 0; ix < nx; ix++) {
       let x_pieces = [];
       for (let iy = 0; iy < ny; iy++) {
-
         let top: Connector | null = null;
-        if(iy != 0){
-          top = x_pieces[iy-1].bottom?.createOpposite() ?? null;
+        if (iy != 0) {
+          top = x_pieces[iy - 1].bottom?.createOpposite() ?? null;
         }
 
         let left: Connector | null = null;
-        if(ix != 0){
-          left = puzzle_pieces[ix-1][iy].right?.createOpposite() ?? null;
+        if (ix != 0) {
+          left = puzzle_pieces[ix - 1][iy].right?.createOpposite() ?? null;
         }
 
         let bottom: Connector | null = null;
-        if(iy < ny-1){
+        if (iy < ny - 1) {
           bottom = Connector.Random();
         }
 
         let right: Connector | null = null;
-        if(ix < nx-1){
+        if (ix < nx - 1) {
           right = Connector.Random();
         }
 
@@ -302,7 +307,10 @@ export function createPuzzle(
           tile_height + dy * (iy == ny - 1 ? 1 : 0),
           base_texture,
           1,
-          top, bottom, left, right
+          top,
+          bottom,
+          left,
+          right
         );
 
         my_app.stage.addChild(puzzle_piece);
