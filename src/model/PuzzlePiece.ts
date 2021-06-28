@@ -1,15 +1,26 @@
 import * as PIXI from "pixi.js";
 import { PolygonConnector } from "./PolygonConnector";
 import { puzzlePieceController } from "../controller/PuzzlePieceController";
+import { sub } from "../utils/PixiPointUtils";
 
 export class PuzzlePiece extends PIXI.Container {
+
+    private inner_upper_left: PIXI.Point;
+    private inner_upper_right: PIXI.Point;
+    private inner_lower_right: PIXI.Point;
+    private inner_lower_left: PIXI.Point;
+    
+    private texture_upper_left: PIXI.Point;
+    private texture_upper_right: PIXI.Point;
+    private texture_lower_right: PIXI.Point;
+    private texture_lower_left: PIXI.Point;
+
     /**
      * @param x The x position (upper left corner) of the PuzzlePiece inside the BaseTexture
      * @param y The y Position (upper left corner) of the PuzzlePiece inside the BaseTextrure
      * @param puzzle_piece_inner_width The width of the PuzzlePiece inside the BaseTextrue
      * @param puzzle_piece_inner_height The height of the PuzzlePiece inside the BaseTexture
      * @param base_texture The BaseTexture
-     * @param con_percentage ????
      * @param top The Connector the PuzzlePiece is Connected to at the top
      * @param bottom The Connector the PuzzlePiece is Connected to at the bottom
      * @param left The Connector the PuzzlePiece is Connected to at the left
@@ -21,32 +32,28 @@ export class PuzzlePiece extends PIXI.Container {
         private puzzle_piece_inner_width: number,
         private puzzle_piece_inner_height: number,
         base_texture: PIXI.BaseTexture,
-        private con_percentage: number,
         public top: PolygonConnector,
         public bottom: PolygonConnector,
         public left: PolygonConnector,
         public right: PolygonConnector,
     ) {
         super();
+
+        this.inner_upper_left = new PIXI.Point(x,y);
+        this.inner_upper_right = new PIXI.Point(x + puzzle_piece_inner_width,y);
+        this.inner_lower_right = new PIXI.Point(x + puzzle_piece_inner_width, y + puzzle_piece_inner_height);
+        this.inner_lower_left = new PIXI.Point(x, y + puzzle_piece_inner_height);
+        
+        this.texture_upper_left = new PIXI.Point(x - left.stickout, y - top.stickout);
+        this.texture_upper_right = new PIXI.Point(x + puzzle_piece_inner_width + right.stickout, y - top.stickout );
+        this.texture_lower_right = new PIXI.Point(x + puzzle_piece_inner_width + right.stickout, y + puzzle_piece_inner_height + bottom.stickout);
+        this.texture_lower_left = new PIXI.Point(x - left.stickout, y + puzzle_piece_inner_height + bottom.stickout);
+
+
         this.position.x = x;
         this.position.y = y;
-        this._width = puzzle_piece_inner_width;
-        this._height = puzzle_piece_inner_height;
-
-        if (top) {
-            this._height += top.added_size;
-            this.position.y -= top.added_size;
-        }
-        if (bottom) {
-            this._height += bottom.added_size;
-        }
-        if (left) {
-            this._width += left.added_size;
-            this.position.x -= left.added_size;
-        }
-        if (right) {
-            this._width += right.added_size;
-        }
+        this._width = this.texture_upper_right.x - this.texture_upper_left.x ;
+        this._height = this.texture_lower_left.y - this.texture_upper_left.y;
 
         let tile_texture = new PIXI.Texture(
             base_texture,
@@ -55,14 +62,18 @@ export class PuzzlePiece extends PIXI.Container {
         let tile_sprite = new PIXI.Sprite(tile_texture);
 
         let polygon_points = [
-            ...(top ? top.points : []),
-            ...(right ? right.points : []),
-            ...(bottom ? bottom.points : []),
-            ...(left ? left.points : []),
+            ...top.points,
+            ...right.points,
+            ...bottom.points,
+            ...left.points,
         ];
+        let min_x = Math.min(...polygon_points.map( p => p.x));
+        let min_y = Math.min(...polygon_points.map( p => p.y));
+        let loacal_transform_vector = new PIXI.Point(min_x, min_y);
+        polygon_points = polygon_points.map( p => sub(p, loacal_transform_vector) );
 
         let mask = new PIXI.Graphics();
-        mask.beginFill(0xffffff, 1);
+        mask.beginFill(0xff0000, 1);
         mask.drawPolygon(polygon_points);
         mask.endFill();
         this.interactive = true;
@@ -96,10 +107,10 @@ export class PuzzlePiece extends PIXI.Container {
     }
 
     get innerX() {
-        return this.left?.added_size ?? 0;
+        return this.left.stickout;
     }
 
     get innerY() {
-        return this.top?.added_size ?? 0;
+        return this.top.stickout;
     }
 }

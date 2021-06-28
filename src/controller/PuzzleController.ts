@@ -52,33 +52,25 @@ class PuzzleController {
                         ix * tile_width + tile_width - dx * (ix == nx - 1 ? 1 : 0),
                         iy * tile_height + tile_height - dy * (iy == ny - 1 ? 1 : 0),
                     );
-                    let top: PolygonConnector;
-                    if (iy != 0) {
-                        top = x_pieces[iy - 1].bottom.get_opposite_side_connector();
-                    }else{
-                        top = PolygonConnector.get_from_to_polygon_connector(upper_left, upper_left);
-                    }
-                    
-                    let right: PolygonConnector;
-                    if (ix < nx - 1) {
-                        right = PolygonConnector.get_random_polygon_connector(upper_right, lower_right, 30);
-                    }else{
-                        right = PolygonConnector.get_from_to_polygon_connector(upper_right, lower_right);
-                    }
-                    let bottom: PolygonConnector;
-                    if (iy < ny - 1) {
-                        bottom = PolygonConnector.get_random_polygon_connector(lower_right, lower_left, 30);
-                    }else{
-                        bottom = PolygonConnector.get_from_to_polygon_connector(lower_right, lower_left);
-                    }
-                    
-                    let left: PolygonConnector;
-                    if (ix != 0) {
-                        left = puzzle_pieces[ix - 1][iy].right.get_opposite_side_connector();
-                    }else{
-                        left = PolygonConnector.get_from_to_polygon_connector(lower_left, upper_left);
-                    }
-                    
+                    let top: PolygonConnector =
+                        iy != 0
+                            ? x_pieces[iy - 1].bottom.get_opposite_side_connector()
+                            : PolygonConnector.get_from_to_polygon_connector(upper_left, upper_right);
+
+                    let right: PolygonConnector =
+                        ix < nx - 1
+                            ? PolygonConnector.get_random_polygon_connector(upper_right, lower_right, 30)
+                            : PolygonConnector.get_from_to_polygon_connector(upper_right, lower_right);
+
+                    let bottom: PolygonConnector =
+                        iy < ny - 1
+                            ? PolygonConnector.get_random_polygon_connector(lower_right, lower_left, 30)
+                            : PolygonConnector.get_from_to_polygon_connector(lower_right, lower_left);
+
+                    let left: PolygonConnector =
+                        ix != 0
+                            ? puzzle_pieces[ix - 1][iy].right.get_opposite_side_connector()
+                            : PolygonConnector.get_from_to_polygon_connector(lower_left, upper_left);
 
                     let puzzle_piece: PuzzlePiece = new PuzzlePiece(
                         ix * tile_width,
@@ -86,7 +78,6 @@ class PuzzleController {
                         tile_width - dx * (ix == nx - 1 ? 1 : 0),
                         tile_height - dy * (iy == ny - 1 ? 1 : 0),
                         base_texture,
-                        1,
                         top,
                         bottom,
                         left,

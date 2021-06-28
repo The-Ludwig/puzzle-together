@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <Canvas :src="video_src" :nx="2" :ny="2" />
+    <Canvas :src="video_src" :nx="4" :ny="4" />
     <div class="controll-area"></div>
   </div>
 </template>
