@@ -2,6 +2,7 @@ import * as PIXI from "pixi.js";
 import { PuzzlePiece } from "../model/PuzzlePiece";
 import { PolygonConnector } from "../model/PolygonConnector";
 import { Polygon } from "pixi.js";
+import { PuzzlePieceContainer } from "../model/PuzzlePieceContainer";
 
 class PuzzleController {
     loaded_textures: string[] = [];
@@ -83,8 +84,8 @@ class PuzzleController {
                         left,
                         right,
                     );
-
-                    my_app.stage.addChild(puzzle_piece);
+                    let puzzle_piece_container = new PuzzlePieceContainer([puzzle_piece]);
+                    my_app.stage.addChild(puzzle_piece_container);
                     x_pieces.push(puzzle_piece);
                 }
                 puzzle_pieces.push(x_pieces);

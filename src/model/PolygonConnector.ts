@@ -2,7 +2,7 @@ import { sub, get_normal, add, mul, Line } from "../utils/PixiPointUtils";
 import * as PIXI from "pixi.js";
 
 export class PolygonConnector {
-    constructor(public points: PIXI.Point[], public from_point: PIXI.Point, public to_point: PIXI.Point) {}
+    constructor(private _points: PIXI.Point[], private _from_point: PIXI.Point, private _to_point: PIXI.Point) {}
 
     static get_from_to_polygon_connector(from_point: PIXI.Point, to_point: PIXI.Point): PolygonConnector {
         return new PolygonConnector([from_point], from_point, to_point);
@@ -13,7 +13,7 @@ export class PolygonConnector {
         let line_vector = sub(to_point, from_point);
         let normal = get_normal(line_vector);
 
-        let next_point:PIXI.Point;
+        let next_point: PIXI.Point;
         points.push(from_point);
         next_point = add(from_point, mul(line_vector, 0.333));
         points.push(next_point);
@@ -27,16 +27,28 @@ export class PolygonConnector {
     }
 
     get_opposite_side_connector(): PolygonConnector {
-        return new PolygonConnector( [...this.points.slice(1), this.to_point].reverse() , this.to_point, this.from_point);
+        return new PolygonConnector([...this._points.slice(1), this._to_point].reverse(), this._to_point, this._from_point);
     }
 
-    get stickout(){
-        let line = new Line(this.from_point, sub(this.to_point, this.from_point));
-        return Math.max(...this.points.map( (p) => line.get_distance_to(p)), 0);
+    get stickout() {
+        let line = new Line(this._from_point, sub(this._to_point, this._from_point));
+        return Math.max(...this._points.map((p) => line.get_distance_to(p)), 0);
     }
-    
-    get stickin(){
-        let line = new Line(this.from_point, sub(this.to_point, this.from_point));
-        return Math.min(...this.points.map( (p) => line.get_distance_to(p)), 0)
+
+    get stickin() {
+        let line = new Line(this._from_point, sub(this._to_point, this._from_point));
+        return Math.min(...this._points.map((p) => line.get_distance_to(p)), 0);
+    }
+
+    get points(){
+        return this._points;
+    }
+
+    get from_point(){
+        return this._from_point;
+    }
+
+    get to_point(){
+        return this._to_point;
     }
 }
