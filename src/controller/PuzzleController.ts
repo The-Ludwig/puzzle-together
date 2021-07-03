@@ -5,8 +5,8 @@ import { Polygon } from "pixi.js";
 import { PuzzlePieceContainer } from "../model/PuzzlePieceContainer";
 
 class PuzzleController {
-    loaded_textures: string[] = [];
-    loader: PIXI.Loader = new PIXI.Loader();
+    private loaded_textures: string[] = [];
+    private loader: PIXI.Loader = new PIXI.Loader();
 
     createPuzzle(canvas: HTMLCanvasElement, src: string, nx: number, ny: number, con_percentage: number) {
         this.loader = new PIXI.Loader();
@@ -32,13 +32,14 @@ class PuzzleController {
 
             let puzzle_pieces: PuzzlePiece[][] = [];
 
-            const tile_width = Math.floor(base_texture.realWidth / nx);
-            const tile_height = Math.floor(base_texture.realHeight / ny);
-            const dx = base_texture.realWidth - tile_width * nx;
-            const dy = base_texture.realHeight - tile_height * ny;
+            const tile_width = Math.floor(base_texture.width / nx);
+            const tile_height = Math.floor(base_texture.height / ny);
+            const dx = base_texture.width - tile_width * nx;
+            const dy = base_texture.height - tile_height * ny;
 
             for (let ix = 0; ix < nx; ix++) {
-                let x_pieces = [];
+                let x_pieces:PuzzlePiece[] = [];
+                puzzle_pieces.push(x_pieces);
                 for (let iy = 0; iy < ny; iy++) {
                     let upper_left = new PIXI.Point(ix * tile_width, iy * tile_height);
                     let upper_right = new PIXI.Point(
@@ -84,17 +85,24 @@ class PuzzleController {
                         left,
                         right,
                     );
+                    if(ix > 0){
+                        puzzle_piece.top_counter_piece = puzzle_pieces[ix][iy-1];
+                    }
+                    if(ix > 0){
+                        puzzle_piece.left_counter_piece = puzzle_pieces[ix-1][iy];
+                    }
+
                     let puzzle_piece_container = new PuzzlePieceContainer([puzzle_piece]);
                     my_app.stage.addChild(puzzle_piece_container);
                     x_pieces.push(puzzle_piece);
                 }
-                puzzle_pieces.push(x_pieces);
             }
             console.log(puzzle_pieces);
         });
 
         this.loader.load();
     }
+
 }
 
 export const puzzleController: PuzzleController = new PuzzleController();
