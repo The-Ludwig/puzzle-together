@@ -1,18 +1,16 @@
 import * as PIXI from "pixi.js";
-import { PuzzlePiece } from "../model/PuzzlePiece";
+import { PuzzlePiece } from "../view/canves_elements/PuzzlePiece";
 import { PolygonConnector } from "../model/PolygonConnector";
-import { Polygon } from "pixi.js";
-import { PuzzlePieceContainer } from "../model/PuzzlePieceContainer";
-
+import { PuzzlePieceContainer } from "../view/canves_elements/PuzzlePieceContainer";
+/**
+ * A Controller to manage the creation of a new puzzle instance.
+ */
 class PuzzleController {
     private loaded_textures: string[] = [];
     private loader: PIXI.Loader = new PIXI.Loader();
 
-    createPuzzle(canvas: HTMLCanvasElement, src: string, nx: number, ny: number, con_percentage: number) {
+    createPuzzle(canvas: HTMLCanvasElement, src: string, nx: number, ny: number) {
         this.loader = new PIXI.Loader();
-        if (con_percentage > 0.5 || con_percentage < 0) {
-            throw new Error(`con_percentage must be between 0 and 0.5, but ${con_percentage} was provided.`);
-        }
         PIXI.settings.SORTABLE_CHILDREN = false;
         this.loader.add(src);
 
@@ -61,12 +59,12 @@ class PuzzleController {
 
                     let right: PolygonConnector =
                         ix < nx - 1
-                            ? PolygonConnector.get_random_polygon_connector(upper_right, lower_right, 30)
+                            ? PolygonConnector.get_random_polygon_connector(upper_right, lower_right, {size:30,})
                             : PolygonConnector.get_from_to_polygon_connector(upper_right, lower_right);
 
                     let bottom: PolygonConnector =
                         iy < ny - 1
-                            ? PolygonConnector.get_random_polygon_connector(lower_right, lower_left, 30)
+                            ? PolygonConnector.get_random_polygon_connector(lower_right, lower_left, {size:30,})
                             : PolygonConnector.get_from_to_polygon_connector(lower_right, lower_left);
 
                     let left: PolygonConnector =
@@ -97,7 +95,6 @@ class PuzzleController {
                     x_pieces.push(puzzle_piece);
                 }
             }
-            console.log(puzzle_pieces);
         });
 
         this.loader.load();

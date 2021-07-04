@@ -1,9 +1,13 @@
 import { sub, get_normal, add, mul, Line } from "../utils/PixiPointUtils";
 import * as PIXI from "pixi.js";
 import { Connector } from "./Connector";
-import { PuzzlePiece } from "./PuzzlePiece";
+import { Subset } from "../utils/TypeUtils";
 
-export class PolygonConnector {
+/**
+ * This connector defines a series of points that can be used in addition to the other Connectors of a PuzzlePiece to creacte a Polygon to outline the Piece
+ * The Points go counter clockwise. The endpoint is excludet for simpler
+ */
+export class PolygonConnector implements Connector {
     private _points: PIXI.Point[];
     private _from_point: PIXI.Point;
     private _to_point: PIXI.Point;
@@ -20,7 +24,12 @@ export class PolygonConnector {
         return new PolygonConnector([from_point], from_point, to_point);
     }
 
-    static get_random_polygon_connector(from_point: PIXI.Point, to_point: PIXI.Point, size: number): PolygonConnector {
+    static get_random_polygon_connector<T>(
+        from_point: PIXI.Point,
+        to_point: PIXI.Point,
+        optional_options: Subset<T, PolygonConnectorCreationOptions>,
+    ): PolygonConnector {
+        let options = default_options(optional_options);
         let points = [];
         let line_vector = sub(to_point, from_point);
         let normal = get_normal(line_vector);
@@ -29,17 +38,19 @@ export class PolygonConnector {
         points.push(from_point);
         next_point = add(from_point, mul(line_vector, 0.333));
         points.push(next_point);
-        next_point = add(next_point, mul(normal, size));
+        next_point = add(next_point, mul(normal, options.size));
         points.push(next_point);
         next_point = add(next_point, mul(line_vector, 0.333));
         points.push(next_point);
-        next_point = add(next_point, mul(normal, -size));
+        next_point = add(next_point, mul(normal, -options.size));
         points.push(next_point);
         return new PolygonConnector(points, from_point, to_point);
     }
 
+
+
     get_opposite_side_connector(): PolygonConnector {
-        if (this._sibling) throw new Error('multiple Siblings');
+        if (this._sibling) throw new Error("multiple Siblings");
         this._sibling = new PolygonConnector(
             [...this._points.slice(1), this._to_point].reverse(),
             this._to_point,
@@ -73,3 +84,13 @@ export class PolygonConnector {
         this._sibling = value;
     }
 }
+
+function default_options<T>(options:Subset<T, PolygonConnectorCreationOptions>):PolygonConnectorCreationOptions{
+    return {
+        size: (options as any).size ?? 30,
+    }
+}
+
+type PolygonConnectorCreationOptions = {
+    size: number;
+};

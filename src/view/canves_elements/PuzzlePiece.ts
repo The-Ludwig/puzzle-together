@@ -1,11 +1,12 @@
 import * as PIXI from "pixi.js";
-import { PolygonConnector } from "./PolygonConnector";
-import { puzzlePieceController } from "../controller/PuzzlePieceController";
-import { add, norm, sub } from "../utils/PixiPointUtils";
+import { PolygonConnector } from "../../model/PolygonConnector";
+import { draw_line } from "../../utils/PixiGraphicsUtils";
+import { add, norm, sub } from "../../utils/PixiPointUtils";
 import { PuzzlePieceContainer } from "./PuzzlePieceContainer";
 
 /**
  * The Class that represents a single PuzzlePiece.
+ * currently it uses the PolygonConnector, but in the future this should be a abstrakt Connector
  */
 export class PuzzlePiece extends PIXI.Container {
     private _inner_upper_left: PIXI.Point;
@@ -125,35 +126,36 @@ export class PuzzlePiece extends PIXI.Container {
         this.draw_unconnected_lines();
     }
 
-    public check_connection_line(container: PuzzlePieceContainer) {
-        if (this._top_counter_piece && container.puzzle_pieces.includes(this._top_counter_piece)) {
-            console.log("top now connected");
+    /**
+     * checks if some of the the pieces counterpieces are in the same parent. if so the corresponding connected property is set to true and the outline is redrawn
+     */
+    public check_counter_pieces_in_parent() {
+        if (this._top_counter_piece && this.parent.children.includes(this._top_counter_piece)) {
             this._top_counter_piece._bottom_connected = true;
             this._top_counter_piece.draw_unconnected_lines();
             this._top_connected = true;
         }
-        if (this._right_counter_piece && container.puzzle_pieces.includes(this._right_counter_piece)) {
-            console.log("right now connected");
-            this._right_counter_piece._bottom_connected = true;
+        if (this._right_counter_piece && this.parent.children.includes(this._right_counter_piece)) {
+            this._right_counter_piece._left_connected = true;
             this._right_counter_piece.draw_unconnected_lines();
             this._right_connected = true;
         }
-        if (this._bottom_counter_piece && container.puzzle_pieces.includes(this._bottom_counter_piece)) {
-            console.log("bottom now connected");
-            this._bottom_counter_piece._bottom_connected = true;
+        if (this._bottom_counter_piece && this.parent.children.includes(this._bottom_counter_piece)) {
+            this._bottom_counter_piece._top_connected = true;
             this._bottom_counter_piece.draw_unconnected_lines();
             this._bottom_connected = true;
         }
-        if (this._left_counter_piece && container.puzzle_pieces.includes(this._left_counter_piece)) {
-            console.log("left now connected");
-            this._left_counter_piece._bottom_connected = true;
+        if (this._left_counter_piece && this.parent.children.includes(this._left_counter_piece)) {
+            this._left_counter_piece._right_connected = true;
             this._left_counter_piece.draw_unconnected_lines();
             this._left_connected = true;
         }
-
         this.draw_unconnected_lines();
     }
 
+    /**
+     * draws the outline for all unconnected sides
+     */
     private draw_unconnected_lines() {
         this.removeChild(this._rim_line);
         this._rim_line = new PIXI.Graphics();
@@ -163,62 +165,65 @@ export class PuzzlePiece extends PIXI.Container {
             let top_local_points = [...this._top_connector.points, this._top_connector.to_point].map((p) =>
                 sub(p, this._local_transform_vector),
             );
-            this.draw_line(this._rim_line, top_local_points);
+            draw_line(this._rim_line, top_local_points);
         }
         if (!this._right_connected) {
             let right_local_points = [...this._right_connector.points, this._right_connector.to_point].map((p) =>
                 sub(p, this._local_transform_vector),
             );
-            this.draw_line(this._rim_line, right_local_points);
+            draw_line(this._rim_line, right_local_points);
         }
 
         if (!this._bottom_connected) {
             let bottom_local_points = [...this._bottom_connector.points, this._bottom_connector.to_point].map((p) =>
                 sub(p, this._local_transform_vector),
             );
-            this.draw_line(this._rim_line, bottom_local_points);
+            draw_line(this._rim_line, bottom_local_points);
         }
         if (!this._left_connected) {
             let left_local_points = [...this._left_connector.points, this._left_connector.to_point].map((p) =>
                 sub(p, this._local_transform_vector),
             );
-            this.draw_line(this._rim_line, left_local_points);
+            draw_line(this._rim_line, left_local_points);
         }
         this.addChild(this._rim_line);
     }
 
-    private draw_line(graphics_object: PIXI.Graphics, points: PIXI.Point[]) {
-        graphics_object.moveTo(points[0].x, points[0].y);
-        points.slice(1).forEach((p) => graphics_object.lineTo(p.x, p.y));
-    }
-
-    public check_connecting(): PuzzlePiece | null {
-        if (this._top_counter_piece) {
+    /**
+     * checks weather a counter piece is nearby, and if so returns it otherwise null
+     * @returns the first found (from top clockwise) counterpiece that is nearby, or null if no counterpiece is nearby
+     */
+    public check_for_nearby_counter_pieces(): PuzzlePiece | null {
+        if (this._top_counter_piece && !this._top_connected) {
             let detection_point = add(this.mid_position_global, new PIXI.Point(0, -this._puzzle_piece_inner_height));
             let distance_to_detection_point = norm(sub(detection_point, this._top_counter_piece.mid_position_global));
+            console.log(`top distance: ${distance_to_detection_point}`);
             if (distance_to_detection_point <= this._puzzle_piece_inner_width / 4) {
                 return this._top_counter_piece;
             }
         }
-        if (this._bottom_counter_piece) {
+        if (this._bottom_counter_piece && !this._bottom_connected) {
             let detection_point = add(this.mid_position_global, new PIXI.Point(0, this._puzzle_piece_inner_height));
             let distance_to_detection_point = norm(
                 sub(detection_point, this._bottom_counter_piece.mid_position_global),
             );
+            console.log(`bottom distance: ${distance_to_detection_point}`);
             if (distance_to_detection_point <= this._puzzle_piece_inner_width / 4) {
                 return this._bottom_counter_piece;
             }
         }
-        if (this._right_counter_piece) {
-            let detection_point = add(this.mid_position_global, new PIXI.Point(0, this._puzzle_piece_inner_height));
+        if (this._right_counter_piece && !this._right_connected) {
+            let detection_point = add(this.mid_position_global, new PIXI.Point(this._puzzle_piece_inner_width, 0));
             let distance_to_detection_point = norm(sub(detection_point, this._right_counter_piece.mid_position_global));
+            console.log(`right distance: ${distance_to_detection_point}`);
             if (distance_to_detection_point <= this._puzzle_piece_inner_height / 4) {
                 return this._right_counter_piece;
             }
         }
-        if (this._left_counter_piece) {
-            let detection_point = add(this.mid_position_global, new PIXI.Point(0, -this._puzzle_piece_inner_height));
+        if (this._left_counter_piece && !this._left_connected) {
+            let detection_point = add(this.mid_position_global, new PIXI.Point(-this._puzzle_piece_inner_width, 0));
             let distance_to_detection_point = norm(sub(detection_point, this._left_counter_piece.mid_position_global));
+            console.log(`left distance: ${distance_to_detection_point}`);
             if (distance_to_detection_point <= this._puzzle_piece_inner_height / 4) {
                 return this._left_counter_piece;
             }

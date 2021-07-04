@@ -39,7 +39,6 @@ export default defineComponent({
       this.src,
       this.nx,
       this.ny,
-      this.con_percentage
     );
   },
 });

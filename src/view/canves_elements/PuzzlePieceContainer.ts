@@ -1,7 +1,9 @@
 import * as PIXI from "pixi.js";
-import { puzzlePieceController } from "../controller/PuzzlePieceController";
 import { PuzzlePiece } from "./PuzzlePiece";
 
+/**
+ * A Container for PuzzlePieces that are connectd.
+ */
 export class PuzzlePieceContainer extends PIXI.Container {
     private _puzzle_pieces: PuzzlePiece[];
     public get puzzle_pieces(): PuzzlePiece[] {
@@ -26,8 +28,6 @@ export class PuzzlePieceContainer extends PIXI.Container {
     add_puzzle_piece(puzzle_piece: PuzzlePiece) {
         this.addChild(puzzle_piece);
         this._puzzle_pieces.push(puzzle_piece);
-        console.log(this.children);
-        console.log(this._puzzle_pieces);
     }
 
     onPuzzlePieceDragStart(event: PIXI.InteractionEvent) {
@@ -51,18 +51,31 @@ export class PuzzlePieceContainer extends PIXI.Container {
         if (this._dragging) {
             this.alpha = 1;
             this._dragging = false;
-            if (this._puzzle_pieces.length == 1) {
-                let single_puzzle_piece = this._puzzle_pieces[0];
-                let check_result_piece = single_puzzle_piece.check_connecting();
-                if (check_result_piece) {
-                    let other_container = check_result_piece.parent as PuzzlePieceContainer;
-                    this.removeChild(single_puzzle_piece);
-                    this._puzzle_pieces = [];
-                    other_container.add_puzzle_piece(single_puzzle_piece);
-                    check_result_piece.check_connection_line(other_container);
-                    this.destroy();
-                }
-            }
+            this.check_for_connections();
         }
+    }
+
+    /**
+     * checks for all PuzzlePieces if they have some connection
+     */
+    check_for_connections() {
+        let check_result_piece = this._puzzle_pieces
+            .map((p) => p.check_for_nearby_counter_pieces())
+            .find((p) => p !== null);
+
+        if (check_result_piece) {
+            let other_container = check_result_piece.parent as PuzzlePieceContainer;
+            this.merge_into(other_container);
+        }
+    }
+
+    /**
+     * merges this container into the other and checks if because of that some connections were formed
+     * @param other_container the Container to merge into
+     */
+    merge_into(other_container: PuzzlePieceContainer) {
+        this.removeChildren();
+        this._puzzle_pieces.forEach(p => other_container.add_puzzle_piece(p));
+        this._puzzle_pieces.forEach(p => p.check_counter_pieces_in_parent());
     }
 }
