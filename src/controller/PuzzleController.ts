@@ -36,7 +36,7 @@ class PuzzleController {
             const dy = base_texture.height - tile_height * ny;
 
             for (let ix = 0; ix < nx; ix++) {
-                let x_pieces:PuzzlePiece[] = [];
+                let x_pieces: PuzzlePiece[] = [];
                 puzzle_pieces.push(x_pieces);
                 for (let iy = 0; iy < ny; iy++) {
                     let upper_left = new PIXI.Point(ix * tile_width, iy * tile_height);
@@ -59,12 +59,12 @@ class PuzzleController {
 
                     let right: PolygonConnector =
                         ix < nx - 1
-                            ? PolygonConnector.get_random_polygon_connector(upper_right, lower_right, {size:30,})
+                            ? PolygonConnector.get_random_polygon_connector(upper_right, lower_right, { size: 30 })
                             : PolygonConnector.get_from_to_polygon_connector(upper_right, lower_right);
 
                     let bottom: PolygonConnector =
                         iy < ny - 1
-                            ? PolygonConnector.get_random_polygon_connector(lower_right, lower_left, {size:30,})
+                            ? PolygonConnector.get_random_polygon_connector(lower_right, lower_left, { size: 30 })
                             : PolygonConnector.get_from_to_polygon_connector(lower_right, lower_left);
 
                     let left: PolygonConnector =
@@ -83,11 +83,11 @@ class PuzzleController {
                         left,
                         right,
                     );
-                    if(ix > 0){
-                        puzzle_piece.top_counter_piece = puzzle_pieces[ix][iy-1];
+                    if (iy > 0) {
+                        puzzle_piece.top_counter_piece = puzzle_pieces[ix][iy - 1];
                     }
-                    if(ix > 0){
-                        puzzle_piece.left_counter_piece = puzzle_pieces[ix-1][iy];
+                    if (ix > 0) {
+                        puzzle_piece.left_counter_piece = puzzle_pieces[ix - 1][iy];
                     }
 
                     let puzzle_piece_container = new PuzzlePieceContainer([puzzle_piece]);
@@ -99,7 +99,6 @@ class PuzzleController {
 
         this.loader.load();
     }
-
 }
 
 export const puzzleController: PuzzleController = new PuzzleController();
