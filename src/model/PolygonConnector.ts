@@ -47,8 +47,6 @@ export class PolygonConnector implements Connector {
         return new PolygonConnector(points, from_point, to_point);
     }
 
-
-
     get_opposite_side_connector(): PolygonConnector {
         if (this._sibling) throw new Error("multiple Siblings");
         this._sibling = new PolygonConnector(
@@ -85,10 +83,10 @@ export class PolygonConnector implements Connector {
     }
 }
 
-function default_options<T>(options:Subset<T, PolygonConnectorCreationOptions>):PolygonConnectorCreationOptions{
+function default_options<T>(options: Subset<T, PolygonConnectorCreationOptions>): PolygonConnectorCreationOptions {
     return {
         size: (options as any).size ?? 30,
-    }
+    };
 }
 
 type PolygonConnectorCreationOptions = {

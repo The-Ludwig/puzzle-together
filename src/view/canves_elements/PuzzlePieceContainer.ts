@@ -66,7 +66,14 @@ export class PuzzlePieceContainer extends PIXI.Container {
         if (check_result_piece) {
             let other_container = check_result_piece.parent as PuzzlePieceContainer;
             this.merge_into(other_container);
+            if (this.check_completion()) {
+                alert("is complete");
+            }
         }
+    }
+
+    check_completion(): boolean {
+        return this._puzzle_pieces.every((p) => p.check_completion());
     }
 
     /**
@@ -75,7 +82,7 @@ export class PuzzlePieceContainer extends PIXI.Container {
      */
     merge_into(other_container: PuzzlePieceContainer) {
         this.removeChildren();
-        this._puzzle_pieces.forEach(p => other_container.add_puzzle_piece(p));
-        this._puzzle_pieces.forEach(p => p.check_counter_pieces_in_parent());
+        this._puzzle_pieces.forEach((p) => other_container.add_puzzle_piece(p));
+        this._puzzle_pieces.forEach((p) => p.check_counter_pieces_in_parent());
     }
 }

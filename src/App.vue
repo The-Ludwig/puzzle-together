@@ -9,7 +9,7 @@
 import { defineComponent } from "vue";
 import Canvas from "./view/components/Canvas.vue";
 
-import video from "./assets/beach.jpg";
+import video from "./assets/test.mp4";
 
 export default defineComponent({
   name: "App",

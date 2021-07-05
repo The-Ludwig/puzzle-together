@@ -189,6 +189,14 @@ export class PuzzlePiece extends PIXI.Container {
         this.addChild(this._rim_line);
     }
 
+    check_completion(): boolean {
+        if (this._top_counter_piece && !this._top_connected) return false;
+        if (this._right_counter_piece && !this._right_connected) return false;
+        if (this._bottom_counter_piece && !this._bottom_connected) return false;
+        if (this._left_counter_piece && !this._left_connected) return false;
+        return true;
+    }
+
     /**
      * checks weather a counter piece is nearby, and if so returns it otherwise null
      * @returns the first found (from top clockwise) counterpiece that is nearby, or null if no counterpiece is nearby
